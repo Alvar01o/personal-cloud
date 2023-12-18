@@ -1,0 +1,23 @@
+{
+  "name": "personal-cloud",
+  "version": "1.0.0",
+  "description": "project to manage personal data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alvar01o/personal-cloud.git"
+  },
+  "keywords": [
+    "personal",
+    "cloud"
+  ],
+  "author": "alvar01omer@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alvar01o/personal-cloud/issues"
+  },
+  "homepage": "https://github.com/Alvar01o/personal-cloud#readme"
+}
