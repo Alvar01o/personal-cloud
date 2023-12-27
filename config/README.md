@@ -1,0 +1,1 @@
+config.json from sequelize goes on this directory
