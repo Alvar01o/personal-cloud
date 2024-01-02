@@ -1,8 +1,15 @@
 // Ejemplo de implementación de los controladores para sitios (sites)
-const obtenerSites = (req, res) => {
-    // Lógica para obtener los sitios
-    // ...
-    res.send('Obtener sitios');
+
+const Sites = require('../models/index').Sites;
+
+const obtenerSites = async (req, res) => {
+    try {
+      const sites = await Sites.findAll();
+      res.json(sites);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error al obtener la lista de sitios' });
+    }
   };
   
   const crearSite = (req, res) => {

@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
   Sites.init({
     repo_name: DataTypes.STRING,
     status: DataTypes.STRING,
-    port: DataTypes.INTEGER
+    port: DataTypes.INTEGER,
+    directory: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Sites',

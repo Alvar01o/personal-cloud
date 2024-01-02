@@ -2,12 +2,16 @@ const express = require("express");
 const http = require("http");
 const app = express();
 const port = 80;
+const sitesRouter = require('./routes/SitesRoute')
+const db = require('./models/index');
 
 app.get("/", (req, res) => {
   res.json({
     message: "Main application on!",
   });
 });
+
+app.use('/', sitesRouter);
 
 app.use("/app1", (req, res) => {
   proxyRequest(req, res, 3001);
@@ -18,7 +22,6 @@ function proxyRequest(req, res, targetPort) {
   const options = {
     hostname: "localhost",
     port: targetPort,
-    //    path: req.originalUrl,
     method: req.method,
     headers: req.headers,
   };
@@ -30,7 +33,10 @@ function proxyRequest(req, res, targetPort) {
   req.pipe(proxy, { end: true });
 }
 
+db.sequelize.sync().then(() => {
 // Inicia el servidor en el puerto principal
 app.listen(port, () => {
   console.log(`Main Server running http://localhost:${port}`);
+});
+
 });
