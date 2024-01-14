@@ -2,6 +2,7 @@ const db = require("../../models/index");
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const folderPath = "repositories";
 
 const startPort = 3000;
 const endPort = 3010;
@@ -27,9 +28,13 @@ function findAvailablePort(startPort, endPort, directory, appJSFile) {
       },
     });
 
-    childProcess.on("spawn", () => {
+    childProcess.on("spawn", async () => {
       console.log("Child Process spawned with PID:", childProcess.pid);
       processData.PID = childProcess.pid;
+      const site = await db.Sites.update({
+        status: "online",
+        port: childProcess.port
+      });
     });
 
     childProcesses.push({
@@ -81,7 +86,7 @@ function findAvailablePort(startPort, endPort, directory, appJSFile) {
       });
 
       childProcessPromises.forEach((promise, index) => {
-        promise.then((cp) => {
+        promise.then(async (cp) => {
           if (!childProcesses[index].finishFlag) {
             console.log(
               "Child Process received SIGINT signal, System in port: " +
@@ -91,6 +96,10 @@ function findAvailablePort(startPort, endPort, directory, appJSFile) {
                 " Finished"
             );
             childProcesses[index].finishFlag = true;
+            const site = await db.Sites.update({
+              status: "offline",
+              port: 0
+            });
           }
         });
       });
@@ -103,9 +112,61 @@ function findAvailablePort(startPort, endPort, directory, appJSFile) {
 }
 
 db.sequelize.sync().then(async () => {
+  const sites = await db.Sites.findAll();
+  console.log(sites);
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      console.error("Failed to read directory:", err);
+      return;
+    }
 
-    const sites = await db.Sites.findAll();
-    console.log(sites);
+    files.forEach((file) => {
+      const folder = path.join(folderPath, file);
+      let existOnDatabase = false;
+      sites.forEach((site) => {
+        if (site.repo_name == file) {
+          existOnDatabase = true;
+        }
+      });
+
+      fs.stat(path.join(folder, "index.js"), async (err, indexJsStat) => {
+        if (!err && indexJsStat.isFile()) {
+          if (!existOnDatabase) {
+            const site = await db.Sites.create({
+              repo_name: file,
+              status: "offline",
+              port: 0,
+              directory: path.join(folder, "index.js"),
+            });
+            console.log("Site created: ", site);
+          } else {
+            console.log(`${file} already added.`);
+          }
+        } else {
+          fs.stat(path.join(folder, "app.js"), async (err, appJsStat) => {
+            if (!err && appJsStat.isFile()) {
+              if (!existOnDatabase) {
+                const site = await db.Sites.create({
+                  repo_name: file,
+                  status: "offline",
+                  port: 0,
+                  directory: path.join(folder, "app.js"),
+                });
+                console.log("Site created: ", site);
+              } else {
+                console.log(`${file} already added.`);
+              }
+            } else if (err) {
+              // Handle the error
+            }
+          });
+        }
+      });
+    });
+  });
+
+  console.log("Running Sites: ");
+
   findAvailablePort(startPort, endPort, "repositories/app1", "index.js")
     .then((data) => {
       console.log(
